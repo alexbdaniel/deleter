@@ -1,20 +1,18 @@
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Versioning;
-using Microsoft.Extensions.DependencyInjection;
 using MiniValidation;
 
 namespace Application.Configuration;
 
-[SupportedOSPlatform("Windows")]
 public class DeleteOptionsValidator
 {
     private readonly List<string> badPaths = [];
     
-    public bool Validate(DeleteOptions[] options)
+    public bool Validate(DeleteOptions options)
     {
         UInt16 annotationErrors = 0;
-        foreach (var option in options)
-            if (!ValidateAnnotations(option)) annotationErrors++;
+
+        if (!ValidateAnnotations(options)) 
+            annotationErrors++;
 
         if (annotationErrors != 0)
             throw new ValidationException("One or more validation errors occured.");
@@ -30,19 +28,19 @@ public class DeleteOptionsValidator
         return false;
     }
 
-    private void ValidatePaths(DeleteOptions[] options)
+    private void ValidatePaths(DeleteOptions options)
     {
-        foreach (var option in options)
+        foreach (var directory in options.Directories)
         {
-            bool exists = Directory.Exists(option.Path);
+            bool exists = Directory.Exists(directory.Path);
             if (exists)
             {
-                bool write = option.Path.HasWriteAccess();
-                badPaths.Add($"No write access to \"{option.Path}\"");
+                if(!directory.Path.HasWritePermission())
+                    badPaths.Add($"No write access to \"{directory.Path}\"");
             }
             else
             {
-                badPaths.Add($"Directory does not exist at \"{option.Path}\"");
+                badPaths.Add($"Directory does not exist at \"{directory.Path}\"");
             }
         }
     }
@@ -63,33 +61,78 @@ public class DeleteOptionsValidator
     
 }
 
-[SupportedOSPlatform("Windows")]
 internal static class Utilities
 {
-    internal static bool HasWriteAccess(this DirectoryInfo directory)
-    {
-        try
-        {
-            _ = directory.GetAccessControl();
-            return true;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return false;
-        }
-    }
-    
-    internal static bool HasWriteAccess(this string directoryName)
+    internal static bool HasWritePermission(this string directoryName)
     {
         try
         {
             var directory = new DirectoryInfo(directoryName);
-            _ = directory.GetAccessControl();
+            string fullPath = GetUniqueFileName(directory);
+            File.Create(fullPath).Dispose();
+            File.Delete(fullPath);
             return true;
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
             return false;
         }
     }
+
+    private static string GetUniqueFileName(DirectoryInfo directory)
+    {
+        string fullPath;
+        
+        UInt16 attempts = 0;
+        bool exists;
+        
+        do
+        {
+            string name = Path.GetRandomFileName();
+            fullPath = Path.Combine(directory.FullName, name);
+            exists = File.Exists(fullPath);
+
+        } while (!exists && ++attempts <= 10);
+
+        if (!exists) return fullPath;
+
+        throw new Exception($"Could not create unique file name for this directory " +
+                            $"\"{directory.FullName}\"");
+        
+    }
 }
+
+
+// [SupportedOSPlatform("Windows")]
+// internal static class Utilities
+// {
+//     
+//     
+//     
+//     internal static bool HasWriteAccess(this DirectoryInfo directory)
+//     {
+//         try
+//         {
+//             _ = directory.GetAccessControl();
+//             return true;
+//         }
+//         catch (UnauthorizedAccessException)
+//         {
+//             return false;
+//         }
+//     }
+//     
+//     internal static bool HasWriteAccess(this string directoryName)
+//     {
+//         try
+//         {
+//             var directory = new DirectoryInfo(directoryName);
+//             _ = directory.GetAccessControl();
+//             return true;
+//         }
+//         catch (UnauthorizedAccessException)
+//         {
+//             return false;
+//         }
+//     }
+// }

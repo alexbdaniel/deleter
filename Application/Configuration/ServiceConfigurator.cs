@@ -1,16 +1,13 @@
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using System.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.Syslog;
 
 namespace Application.Configuration;
 
-[SupportedOSPlatform("Windows")]
 public static class ServiceConfigurator
 {
     private const string applicationName = "file-cleaner"; 
@@ -19,6 +16,8 @@ public static class ServiceConfigurator
     {
         services.ConfigureLogging(configuration);
         services.ConfigureOptions(configuration);
+
+        services.AddSingleton<Deleter>();
         
         return services;
     }
@@ -62,6 +61,10 @@ public static class ServiceConfigurator
                 string parentDirectoryName = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string directoryName = Path.Combine(parentDirectoryName, "FileCleaner", "Log");
                 Directory.CreateDirectory(directoryName);
+
+                string templatePath = Path.Combine(directoryName, $"{applicationName}-.log");
+
+                logger.WriteTo.File(path: templatePath, rollingInterval: RollingInterval.Day);
                 
                 Console.WriteLine($"Cannot log to EventLog. Will instead attempt to log to \"{directoryName}\".");
             }
@@ -77,7 +80,7 @@ public static class ServiceConfigurator
     
     private static IServiceCollection ConfigureOptions(this IServiceCollection services, IConfigurationRoot configuration)
     {
-        services.AddOptions<DeleteOptions[]>().Bind(configuration.GetSection(DeleteOptions.Key))
+        services.AddOptions<DeleteOptions>().Bind(configuration.GetSection(DeleteOptions.Key))
             .ValidateDataAnnotations()
             .Validate(options => new DeleteOptionsValidator().Validate(options))
             .ValidateOnStart();

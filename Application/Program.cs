@@ -1,16 +1,16 @@
-﻿using System.Runtime.Versioning;
-using Application.Configuration;
+﻿using Application.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Application;
 
-[SupportedOSPlatform("Windows")]
 internal static class Program
 {
     private static async Task Main()
     {
+        AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
+        
         using IHost host = new HostBuilder().Build();
 
         await host.StartAsync();
@@ -36,12 +36,12 @@ internal static class Program
         
         Console.WriteLine("Shutting down");
         await host.WaitForShutdownAsync();
-        
-
-        
-        
-        
-        
-        Console.WriteLine("Hello, World!");
+    }
+    
+    private static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e) {
+        Console.WriteLine(e.ExceptionObject.ToString());
+        Console.WriteLine("Press Enter to continue");
+        Console.ReadLine();
+        Environment.Exit(1);
     }
 }
