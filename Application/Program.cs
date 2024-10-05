@@ -30,12 +30,36 @@ internal static class Program
         await using var provider = services.BuildServiceProvider();
 
         var deleter = provider.GetRequiredService<Deleter>();
-        deleter.StartDeleting();
+        var failures = deleter.StartDeleting();
+        WriteResultToConsole(failures);
         
         lifetime.StopApplication();
         
         Console.WriteLine("Shutting down");
         await host.WaitForShutdownAsync();
+    }
+
+    private static void WriteResultToConsole(List<Failure> failures)
+    {
+        if (failures.Count == 0)
+        {
+            Console.WriteLine("Completed successfully.");
+            return;
+        }
+        
+        string title = $"The following failure{(failures.Count > 1 ? "s" : "")} occured:";
+        Console.WriteLine(title);
+        
+        foreach (var failure in failures)
+        {
+            Console.WriteLine("");
+            Console.WriteLine($" - {failure.Message}");
+            Console.WriteLine($"    Reason  = \"{failure.Reason}\"");
+            Console.WriteLine($"    Path    = \"{failure.Path}\"");
+            Console.WriteLine("");
+        }
+        
+        
     }
     
     private static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e) {

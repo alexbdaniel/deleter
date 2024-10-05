@@ -11,6 +11,7 @@ public class Deleter
     private readonly DeleteOptions options;
     private readonly List<TargetDirectory> directories = [];
     private readonly ILogger logger;
+    private readonly List<Failure> failures = [];
 
     public Deleter(IOptions<DeleteOptions> options, ILogger<Deleter> logger)
     {
@@ -18,7 +19,7 @@ public class Deleter
         this.options = options.Value;
     }
 
-    public void StartDeleting()
+    public List<Failure> StartDeleting()
     {
         foreach (var option in options.Directories)
             directories.Add(new TargetDirectory(option.Path, option.DeleteTimeSpan));
@@ -32,6 +33,8 @@ public class Deleter
             
             DeleteFiles(files);
         }
+
+        return failures;
     }
 
     private void DeleteFiles(FileInfo[] files)
@@ -50,6 +53,13 @@ public class Deleter
             catch (Exception ex)
             {
                 logger.LogError(ex, "Problem occured deleting file at {path}", file.FullName);
+                
+                failures.Add(new Failure
+                {
+                    Message = "Unable to delete file.",
+                    Path = file.FullName,
+                    Reason = ex.GetType().ToString()
+                });
             }
         }
     }

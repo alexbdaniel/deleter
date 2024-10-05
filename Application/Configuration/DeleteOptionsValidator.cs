@@ -32,16 +32,9 @@ public class DeleteOptionsValidator
     {
         foreach (var directory in options.Directories)
         {
-            bool exists = Directory.Exists(directory.Path);
-            if (exists)
-            {
-                if(!directory.Path.HasWritePermission())
-                    badPaths.Add($"No write access to \"{directory.Path}\"");
-            }
-            else
-            {
-                badPaths.Add($"Directory does not exist at \"{directory.Path}\"");
-            }
+            if(!Directory.Exists(directory.Path))
+                badPaths.Add($"Directory does not exist at \"{directory.Path}\".");
+            
         }
     }
 
@@ -61,78 +54,4 @@ public class DeleteOptionsValidator
     
 }
 
-internal static class Utilities
-{
-    internal static bool HasWritePermission(this string directoryName)
-    {
-        try
-        {
-            var directory = new DirectoryInfo(directoryName);
-            string fullPath = GetUniqueFileName(directory);
-            File.Create(fullPath).Dispose();
-            File.Delete(fullPath);
-            return true;
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return false;
-        }
-    }
 
-    private static string GetUniqueFileName(DirectoryInfo directory)
-    {
-        string fullPath;
-        
-        UInt16 attempts = 0;
-        bool exists;
-        
-        do
-        {
-            string name = Path.GetRandomFileName();
-            fullPath = Path.Combine(directory.FullName, name);
-            exists = File.Exists(fullPath);
-
-        } while (!exists && ++attempts <= 10);
-
-        if (!exists) return fullPath;
-
-        throw new Exception($"Could not create unique file name for this directory " +
-                            $"\"{directory.FullName}\"");
-        
-    }
-}
-
-
-// [SupportedOSPlatform("Windows")]
-// internal static class Utilities
-// {
-//     
-//     
-//     
-//     internal static bool HasWriteAccess(this DirectoryInfo directory)
-//     {
-//         try
-//         {
-//             _ = directory.GetAccessControl();
-//             return true;
-//         }
-//         catch (UnauthorizedAccessException)
-//         {
-//             return false;
-//         }
-//     }
-//     
-//     internal static bool HasWriteAccess(this string directoryName)
-//     {
-//         try
-//         {
-//             var directory = new DirectoryInfo(directoryName);
-//             _ = directory.GetAccessControl();
-//             return true;
-//         }
-//         catch (UnauthorizedAccessException)
-//         {
-//             return false;
-//         }
-//     }
-// }
