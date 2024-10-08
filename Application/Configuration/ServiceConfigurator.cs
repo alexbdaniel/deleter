@@ -56,7 +56,7 @@ public static class ServiceConfigurator
             {
                 logger.WriteTo.EventLog(applicationName, manageEventSource: true);
             }
-            catch (SecurityException ex)
+            catch (SecurityException)
             {
                 string parentDirectoryName = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string directoryName = Path.Combine(parentDirectoryName, "FileCleaner", "Log");
