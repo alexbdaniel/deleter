@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
-        <SelfContained>true</SelfContained>
+        <SelfContained Condition="'$(Configuration)' == 'Release'">true</SelfContained>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <AssemblyName>FileCleanup</AssemblyName>
         <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
@@ -37,12 +37,12 @@
       <PackageReference Include="Serilog.Sinks.EventLog" Version="4.0.0" />
       <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
       <PackageReference Include="Serilog.Sinks.SyslogMessages" Version="3.0.2" />
-      <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+<!--      <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />-->
     </ItemGroup>
 
     <ItemGroup>
       <None Update="appsettings.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 

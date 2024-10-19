@@ -11,10 +11,19 @@ public class DeleteOptions
 
 public class DirectoryToDelete
 {
+    private readonly string? path;
     [Required]
-    public required string Path { get; init; }
+    public required string Path
+    {
+        get => path ?? "";
+        init => path = ReplaceTemplateWithUserName(value);
+    }
+    
+    public TimeSpan DeleteTimeSpan => TimeSpan.FromMinutes(AgeToDelete);
     
     [Required]
-    public required TimeSpan DeleteTimeSpan { get; init; }
-    
+    public double AgeToDelete { get; init; }
+
+    private static string ReplaceTemplateWithUserName(string template) =>
+        template.Replace("{username}", Environment.UserName);
 }
