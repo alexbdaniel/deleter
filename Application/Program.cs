@@ -17,7 +17,7 @@ internal static class Program
         var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
 
         var configuration = new ConfigurationManager()
-            .SetBasePath(Directory.GetCurrentDirectory())
+            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
             .AddJsonFile("appsettings.json", false)
             .AddJsonFile("appsettings.development.json", true)
             .AddEnvironmentVariables()
